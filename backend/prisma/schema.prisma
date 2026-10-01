@@ -1,15 +1,221 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ============ ПОЛЬЗОВАТЕЛИ ============
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  avatarUrl    String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reviews  Review[]
+  ratings  Rating[]
+  lists    List[]
+  comments Comment[]
+  reports  Report[]
+  likes    ReviewLike[]
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+// ============ ПРОИЗВЕДЕНИЯ ============
+
+model Work {
+  id            Int      @id @default(autoincrement())
+  title         String
+  originalTitle String?
+  description   String?
+  type          WorkType
+  releaseYear   Int?
+  duration      Int?
+  pages         Int?
+  coverUrl      String?
+  creator       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  genres    WorkGenre[]
+  reviews   Review[]
+  ratings   Rating[]
+  listItems ListItem[]
+
+  @@map("works")
+}
+
+enum WorkType {
+  BOOK
+  MOVIE
+  GAME
+}
+
+model Genre {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  slug  String @unique
+
+  works WorkGenre[]
+
+  @@map("genres")
+}
+
+model WorkGenre {
+  workId  Int
+  genreId Int
+
+  work  Work  @relation(fields: [workId], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([workId, genreId])
+  @@map("work_genres")
+}
+
+// ============ ОЦЕНКИ ============
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  value     Int
+  userId    Int
+  workId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workId])
+  @@map("ratings")
+}
+
+// ============ РЕЦЕНЗИИ ============
+
+model Review {
+  id         Int          @id @default(autoincrement())
+  title      String
+  text       String
+  hasSpoiler Boolean      @default(false)
+  status     ReviewStatus @default(PENDING)
+  likes      Int          @default(0)
+  userId     Int
+  workId     Int
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  work     Work         @relation(fields: [workId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  reports  Report[]
+  likedBy  ReviewLike[]
+
+  @@map("reviews")
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  REJECTED
+  HIDDEN
+}
+
+model ReviewLike {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  reviewId  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reviewId])
+  @@map("review_likes")
+}
+
+// ============ СПИСКИ ============
+
+model List {
+  id        Int      @id @default(autoincrement())
+  name      String
+  isPublic  Boolean  @default(true)
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ListItem[]
+
+  @@map("lists")
+}
+
+model ListItem {
+  id        Int        @id @default(autoincrement())
+  listId    Int
+  workId    Int
+  status    ListStatus @default(WANT)
+  createdAt DateTime   @default(now())
+
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+  work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, workId])
+  @@map("list_items")
+}
+
+enum ListStatus {
+  WANT
+  IN_PROGRESS
+  DONE
+}
+
+// ============ КОММЕНТАРИИ ============
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  userId    Int
+  reviewId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+// ============ ЖАЛОБЫ ============
+
+model Report {
+  id        Int          @id @default(autoincrement())
+  reason    String
+  status    ReportStatus @default(OPEN)
+  userId    Int
+  reviewId  Int
+  createdAt DateTime     @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  REJECTED
 }
