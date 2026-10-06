@@ -311,7 +311,7 @@ async function main() {
     },
   });
 
-  // ЖАЛОБА
+   // ЖАЛОБА
   await prisma.report.create({
     data: {
       reason: 'Спойлер без предупреждения',
@@ -321,6 +321,7 @@ async function main() {
     },
   });
 
+  // ИТОГИ
   const counts = {
     genres: await prisma.genre.count(),
     users: await prisma.user.count(),
