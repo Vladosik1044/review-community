@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
 import workRoutes from './routes/workRoutes';
 import reviewRoutes from './routes/reviewRoutes';
+import listRoutes from './routes/listRoutes';
 const app = express();
 
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/works', workRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/lists', listRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', env: env.NODE_ENV });
