@@ -21,6 +21,7 @@ async function main() {
 
   // ПОЛЬЗОВАТЕЛИ
   const passwordHash = await bcrypt.hash('password123', 10);
+  const answerHash = await bcrypt.hash('ответ', 10);
 
   const usersData = [
     { email: 'admin@reviews.local', username: 'admin', role: Role.ADMIN },
@@ -33,7 +34,12 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { email: u.email },
       update: {},
-      create: { ...u, passwordHash },
+      create: {
+        ...u,
+        passwordHash,
+        securityQuestion: 'Кличка первого питомца?',
+        securityAnswerHash: answerHash,
+      },
     });
     users.push(user);
   }
