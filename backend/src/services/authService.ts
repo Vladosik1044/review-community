@@ -5,11 +5,11 @@ import { env } from '../config/env';
 import { HttpError } from '../middleware/errorHandler';
 
 export const SECURITY_QUESTIONS = [
-  'Девичья фамилия матери?',
-  'Название первой школы?',
-  'Кличка первого питомца?',
-  'Город, где вы родились?',
-  'Ваше любимое блюдо в детстве?',
+  'Mother maiden name?',
+  'First school name?',
+  'First pet name?',
+  'City of birth?',
+  'Favourite childhood food?',
 ];
 
 function signToken(userId: number, role: string) {
