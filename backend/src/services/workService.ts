@@ -72,6 +72,7 @@ export async function listWorks(params: ListParams) {
       id: w.id,
       title: w.title,
       originalTitle: w.originalTitle,
+      description: w.description,
       type: w.type,
       releaseYear: w.releaseYear,
       duration: w.duration,
